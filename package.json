@@ -1,0 +1,10 @@
+{
+  "name": "actorEmitter",
+  "version": "0.1.0",
+  "description": "event emitter micro library, single instance",
+  "main": "actoremitter",
+  "_nodeSupported": true,
+  "engines": {
+    "node": "*"
+  }
+}
