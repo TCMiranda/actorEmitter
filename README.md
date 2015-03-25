@@ -1,6 +1,6 @@
 # ActorEmitter.js
 
-_ActorEmitter.js_ is lightweight, independent, event emitter library which provides the
+_Actoremitter.js_ is lightweight, independent, event emitter library which provides the
 [observer pattern](http://en.wikipedia.org/wiki/Observer_pattern) to javascript objects.
 It works on node.js and browser. It is a single .js file.
 
