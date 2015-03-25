@@ -4,17 +4,17 @@ var _events = {};
 
 var _trigger = function (data, cb) {
 
-	setTimeout(cb.fn.bind(cb.scope, data), 0);
+	setTimeout(_apply(cb.scope, cb.fn, data), 0);
 };
 
 var _triggerWait = function (data, future, cb) {
 
-	setTimeout(cb.fn.bind(cb.scope, data, future), 0);
+	setTimeout(_apply(cb.scope, cb.fn, future.concat(data)), 0);
 };
 
-var _wait = function (cb) {
+var _wait = function (event, data, cb) {
 
-	_events[event].forEach(_triggerWait.bind(this, data, cb));
+	_events[event].forEach(_triggerWait.bind(this, data, [cb]));
 
 	return actorInterface;
 };
@@ -68,11 +68,11 @@ var actorEmitter = {
 
 		if ( !_events[event] ) return ;
 
-		return ( cb && _events[event].forEach(_triggerWait.bind(this, data, cb)) )
+		return ( cb && _events[event].forEach(_triggerWait.bind(this, data, [cb])) )
 			? actorInterface
 			: {
-				then: _wait,
-				done: _wait
+				then: _wait.bind(this, event, data),
+				done: _wait.bind(this, event, data)
 			} ;
 	}
 };
@@ -93,7 +93,9 @@ var actorInterface = {
 	},
 	wait: function (event, data, cb) {
 
-		return actorEmitter.wait.call(this, event, data, cb);
+		return typeof cb === 'Function'
+			? actorEmitter.wait.call(this, event, data, cb)
+			: actorEmitter.wait.call(this, event, Array.prototype.slice.call(arguments, 1));
 	},
 	next: function (fn) {
 
