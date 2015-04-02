@@ -1,6 +1,6 @@
 {
   "name": "actor-emitter",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Single instance, lightweight, async and scope-full event emitter",
   "main": "actoremitter",
   "_nodeSupported": true,
