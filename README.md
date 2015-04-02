@@ -40,6 +40,7 @@ Check this websocket implementation with actor-emitter!
 
         data = JSON.stringify(data);
 
+        // declare next function call, with scope and non blocking
         emitter.next(_wsSend, data);
     };
 
@@ -111,7 +112,19 @@ Then, a worker should be like:
     	    emitter.trigger('socket:send', data);
         };
 
+        var requestUserPublicProfile = function () {
+
+            var data = {
+                header: 'myapp',
+                action: 'user_get_public',
+                nick: 'mynick'
+            }
+
+            emitter.trigger('socket.send', data);
+        }
+
         emitter.bind('authentication:announce', onAuthenticationRequested);
+        emitter.bind('authentication:announce:200', requestUserPublicProfile);
     }
 
 
@@ -121,6 +134,7 @@ That example outputs something like this, assuming your server requests an authe
     ->  {"action":"announce","header":"authentication","_id":"77e5b21e-4494-481c-9591-621680bf0772","appKey":"myapp"}
     <-  {"action":"announce","header":"authentication","__code__":200}
     ->  {"header":"myapp","action":"user_get_public","nick":"mynick"}
+    <-  ...
 
 Thats it.
 
