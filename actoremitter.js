@@ -21,7 +21,9 @@ var _wait = function (event, data, cb) {
 
 var _apply = function (scope, fn, args) {
 
-	fn.apply(scope, args);
+	return function () {
+        fn.apply(scope, args);
+    };
 };
 
 var actorEmitter = {
