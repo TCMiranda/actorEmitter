@@ -52,7 +52,7 @@ var actorEmitter = {
 
 		if ( !_events[event] ) return ;
 
-        for (e in _events[event]) {
+        for (var e in _events[event]) {
             _trigger.call(this, data, e);
         };
 
