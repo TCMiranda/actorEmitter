@@ -52,9 +52,10 @@ var actorEmitter = {
 
 		if ( !_events[event] ) return ;
 
-        for (var e in _events[event]) {
-            _trigger.call(this, data, e);
-        };
+        var events = _events[event];
+
+        for (var e in events)
+            _trigger.call(this, data, events[e]);
 
 	    return actorInterface;
 	},
