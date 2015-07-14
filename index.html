@@ -29,9 +29,205 @@
       <div class="inner clearfix">
         <section id="main-content">
           <h1>
-<a id="actor-emitter" class="anchor" href="#actor-emitter" aria-hidden="true"><span class="octicon octicon-link"></span></a>Actor-emitter</h1>
+<a id="actoremitterjs" class="anchor" href="#actoremitterjs" aria-hidden="true"><span class="octicon octicon-link"></span></a>ActorEmitter.js</h1>
 
-<p>ActorEmitter.js, lightweight, independent, async and scope-full event emitter library for JavaScript</p>
+<p><em>Actoremitter.js</em> is lightweight, independent, scope-full, event emitter library with some features.</p>
+
+<h2>
+<a id="why" class="anchor" href="#why" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why</h2>
+
+<p>This package is meant to be single instance, lightweight, async and scope-full event emitter, in order to provide communication between objects in differbuild ent scopes.
+Binding on an event, maintains the worker scope, so they can continue to process the call in a non blocking way, with the e.next() method.</p>
+
+<h3>
+<a id="use-actoremitter-to-structure-your-code" class="anchor" href="#use-actoremitter-to-structure-your-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use actoremitter to structure your code</h3>
+
+<p>We believe that async programming is a key feature of JavaScript code organization. </p>
+
+<p>Write all of it in an asynchronous way is better than just rely asynchronous operations.
+<strong>Web is not sync</strong>
+<strong>UI is not sync</strong>
+<strong>User Interactions are not sync</strong></p>
+
+<p>Actor emitter helps you build better apps, async based, maintaining scope and a single dispatcher event emitter</p>
+
+<h2>
+<a id="how" class="anchor" href="#how" aria-hidden="true"><span class="octicon octicon-link"></span></a>How</h2>
+
+<p>Get the scope</p>
+
+<pre><code>var emitter = require('actor-emitter'),
+</code></pre>
+
+<p>Emitting events</p>
+
+<pre><code>emitter.trigger('key', data);
+emitter.bind('key', data);
+</code></pre>
+
+<p>Calling next operation (it calls the function asynchronously)</p>
+
+<pre><code>emitter.next(function, data);
+</code></pre>
+
+<p>Promise like</p>
+
+<pre><code>emitter.wait('promisse', data)
+       .then(function callback(data) { 
+           //...
+       });
+
+emitter.bind('promisse', function(data, cb) {
+
+    cb('something');
+});
+</code></pre>
+
+<h2>
+<a id="how-to-use-it" class="anchor" href="#how-to-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to Use It</h2>
+
+<p>Actor emitter is single instance, so it listens and emits the same events all across your app.</p>
+
+<pre><code>var emitter = require('actor-emitter');
+</code></pre>
+
+<p>Check this websocket implementation with actor-emitter!</p>
+
+<pre><code>var WebSocketClient = require('websocket').client,
+    emitter = require('actor-emitter'),
+    client = new WebSocketClient();
+
+var _connection = null;
+
+var _wsSend = function (data) {
+
+    try {
+
+        _connection.sendUTF(data);
+        console.log('-&gt; ', data);
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+var wsSend = function (data) {
+
+    data = JSON.stringify(data);
+
+    // declare next function call, with scope and non blocking
+    emitter.next(_wsSend, data);
+};
+
+var wsOnMessage = function (data) {
+
+    var key = data.header + ':' + data.action + (data.__code__ ? ':' + data.__code__ : '');
+
+    emitter.trigger(key, data);
+};
+
+emitter.bind('socket:send', wsSend);
+
+client.on('connectFailed', function(error) {
+
+    console.log('Connect Error: ' + error.toString());
+});
+
+client.on('connect', function(connection) {
+
+    console.log('WebSocket Client Connected');
+
+    connection.on('error', function(error) {
+
+        console.log("Connection Error: " + error.toString());
+    });
+
+    connection.on('close', function() {
+
+        console.log('Connection Closed');
+    });
+
+    connection.on('message', function(message) {
+
+        if (message.type === 'utf8') {
+
+            console.log('&lt;- ',  message.utf8Data);
+
+            emitter.next(wsOnMessage, JSON.parse(message.utf8Data));
+            emitter.trigger('socket:onmessage', JSON.parse(message.utf8Data));
+        }
+    });
+
+    _connection = connection;
+
+    emitter.trigger('socket:onopen', connection);
+});
+
+client.connect('ws://someserver:8888/');
+</code></pre>
+
+<p>Its all assync, non-block and easy</p>
+
+<p>Then, a worker should be like:</p>
+
+<pre><code>var emitter = require('actor-emitter'),
+uuid     = require('node-uuid');
+
+var worker = (function() {
+
+    var _id;
+
+    var onAuthenticationRequested = function (data) {
+
+        _id = uuid();
+        data._id = _id;
+        data.appKey = 'myapp';
+
+        // send authentication request!
+        emitter.trigger('socket:send', data);
+    };
+
+    var requestUserPublicProfile = function () {
+
+        var data = {
+            header: 'myapp',
+            action: 'user_get_public',
+            nick: 'mynick'
+        }
+
+        emitter.trigger('socket.send', data);
+    }
+
+    emitter.bind('authentication:announce', onAuthenticationRequested);
+    emitter.bind('authentication:announce:200', requestUserPublicProfile);
+}
+</code></pre>
+
+<p>That example outputs something like this, assuming your server requests an authentication when connected</p>
+
+<pre><code>&lt;-  {"action":"announce","header":"authentication"}
+-&gt;  {"action":"announce","header":"authentication","_id":"77e5b21e-4494-481c-9591-621680bf0772","appKey":"myapp"}
+&lt;-  {"action":"announce","header":"authentication","__code__":200}
+-&gt;  {"header":"myapp","action":"user_get_public","nick":"mynick"}
+&lt;-  ...
+</code></pre>
+
+<p>Thats it.</p>
+
+<p>Install it via npm</p>
+
+<pre><code>npm install actor-emitter
+</code></pre>
+
+<p>To include it in a nodejs code isnt much harder</p>
+
+<pre><code>var aEmitter = require('actor-emitter')
+</code></pre>
+
+<p>MIT license.
+If you hit bugs, fill issues on github.
+Feel free to fork, modify and have fun with it :)</p>
         </section>
 
         <aside id="sidebar">
